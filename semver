@@ -1,0 +1,61 @@
+#!/usr/bin/env php
+<?php
+
+try {
+    if (!$command = $argv[1]) {
+        throw new \RuntimeException('The command is required as second argument (ex: get:major)');
+    }
+    if (!preg_match('/^(get|increase):(major|minor|patch|pre_release)$/', $command)) {
+        throw new \RuntimeException(sprintf('"%s" is an invalid command', $command));
+    }
+
+    if (!$version = $argv[2]) {
+        throw new \RuntimeException('The current version number is required as first argument (ex: 1.2.3-beta)');
+    }
+    if (!preg_match('/^\d+.\d+.[\w-]+$/', $version)) {
+        throw new \RuntimeException(sprintf('"%s" is an invalid version format', $version));
+    }
+
+    [$command, $level] = explode(':', $command);
+    [$mainRelease, $preRelease] = array_pad(explode('-', $version), 2, null);
+    [$major, $minor, $patch] = explode('.', $mainRelease);
+
+    switch ($command) {
+        case 'get':
+            echo ($level === 'pre_release' ? $preRelease : ${$level}).PHP_EOL;
+            exit;
+        case 'increase':
+            switch ($level) {
+                case 'major':
+                    $major++;
+                    $minor = $patch = 0;
+                    $preRelease = null;
+                    break;
+                case 'minor':
+                    $minor++;
+                    $patch = 0;
+                    $preRelease = null;
+                    break;
+                case 'patch':
+                    $patch++;
+                    $preRelease = null;
+                    break;
+                case 'pre_release':
+                    if ($preRelease) {
+                        preg_match('/^([a-z]+)(\d*)$/', $preRelease, $matches);
+                        $preReleaseNumber = $matches[2] ?: 1;
+                        $preReleaseNumber++;
+                        $preRelease = $matches[1] . $preReleaseNumber;
+                    }
+                    break;
+                default:
+                    throw new \LogicException('Unexpected version level');
+            }
+            echo sprintf('%d.%d.%d%s', $major, $minor, $patch, $preRelease ? '-'.$preRelease : '').PHP_EOL;
+            exit;
+        default:
+            throw new \LogicException('Unexpected command');
+    }
+} catch (\Throwable $e) {
+    echo $e->getMessage().PHP_EOL;
+}
