@@ -1,0 +1,15 @@
+{
+    "name": "cyve/semver",
+    "description": "Simple binary to manipulate semantic version numbers",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Cyril Vermande",
+            "homepage": "https://cyve.github.io"
+        }
+    ],
+    "require": {
+        "php": ">=7.3"
+    }
+}
